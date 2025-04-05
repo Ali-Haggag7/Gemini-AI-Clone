@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/gemeni-clone-react/static/css/main.7af19925.css",
+    "main.js": "/gemeni-clone-react/static/js/main.929b49fd.js",
+    "static/media/user_icon.png": "/gemeni-clone-react/static/media/user_icon.8819483ee7d653116bf2.png",
+    "static/media/gallery_icon.png": "/gemeni-clone-react/static/media/gallery_icon.1da1416be560b7741007.png",
+    "index.html": "/gemeni-clone-react/index.html",
+    "main.7af19925.css.map": "/gemeni-clone-react/static/css/main.7af19925.css.map",
+    "main.929b49fd.js.map": "/gemeni-clone-react/static/js/main.929b49fd.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7af19925.css",
+    "static/js/main.929b49fd.js"
+  ]
+}
