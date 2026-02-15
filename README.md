@@ -1,70 +1,106 @@
-# Getting Started with Create React App
+<div align="center">
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+  <h1>✨ Gemini AI Clone</h1>
+  
+  <p>
+    A pixel-perfect clone of <b>Google Gemini</b> built with <b>React.js</b>.
+    Integrated with the official <b>Google Generative AI SDK</b> to provide real-time, intelligent conversations.
+  </p>
 
-## Available Scripts
+  <p>
+    <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+    <img src="https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlebard&logoColor=white" />
+    <img src="https://img.shields.io/badge/Context%20API-State%20Management-blue?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" />
+  </p>
 
-In the project directory, you can run:
+  <br />
 
-### `npm start`
+  <img src="https://placehold.co/800x400/1a1a1a/FFF?text=Gemini+Clone+Preview+(Add+Image)" alt="Project Preview" width="100%" style="border-radius: 10px;" />
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+</div>
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+<br />
 
-### `npm test`
+## 🔥 Key Features
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 🤖 AI Intelligence
+* **Powered by Gemini Pro:** Direct integration with Google's latest LLM via `gemini.js` config.
+* **Smart Context:** Maintains conversation context for fluid interactions.
+* **Real-time Responses:** Instant streaming of AI answers.
 
-### `npm run build`
+### 🎨 UI/UX Design
+* **Modern Interface:** Replicates the clean, minimalist look of the original Gemini.
+* **Sidebar Navigation:** Manage chat history and sessions (`Sidebar.jsx`).
+* **Responsive Layout:** Optimized for both desktop and mobile views (`Main.jsx`).
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 🛠️ Engineering Concepts
+* **State Management:** Utilizes **React Context API** (`Context.jsx`) to handle global state (prompts, results, loading status) without prop drilling.
+* **Component Architecture:** Modular structure separating Logic, UI, and Configuration.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🛠️ Tech Stack
 
-### `npm run eject`
+| Component | Technology |
+| :--- | :--- |
+| **Frontend Framework** | React.js (Hooks & Functional Components) |
+| **AI Integration** | Google Generative AI SDK (@google/generative-ai) |
+| **State Management** | React Context API |
+| **Styling** | Modern CSS3 & Flexbox |
+| **Assets** | SVG Icons & Dynamic Assets |
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🚀 Getting Started
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Follow these steps to run your own AI assistant locally:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 1. Clone & Install
+```bash
+# Clone the repository
+git clone [https://github.com/Ali-Haggag7/Gemini-AI-Clone.git](https://github.com/Ali-Haggag7/Gemini-AI-Clone.git)
+cd Gemini-AI-Clone
 
-## Learn More
+# Install dependencies
+npm install
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+### 2. Get Your API Key
+Go to Google AI Studio.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Create a new API Key.
 
-### Code Splitting
+### 3. Setup Configuration
+Note: Ideally, use environment variables (.env). If you are using config/gemini.js, paste your key there (but never push it to GitHub).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### 4. Run the App
+```bash
+npm start
 
-### Analyzing the Bundle Size
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Open http://localhost:3000 to view it in the browser.
 
-### Making a Progressive Web App
+## 📸 Interface Previews
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+| **Chat Interface** | **Sidebar & History** |
+| :---: | :---: |
+| <img src="https://placehold.co/400x250/1a1a1a/FFF?text=Chat+Interface+Preview" width="100%" /> | <img src="https://placehold.co/400x250/1a1a1a/FFF?text=Sidebar+and+History+Preview" width="100%" /> |
 
-### Advanced Configuration
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+<div align="center">
+  <br />
+  <p>Made with ❤️ by <b>Ali Haggag</b></p>
+  
+  <a href="https://www.linkedin.com/in/ali-haggag7/">
+    <img src="https://img.shields.io/badge/Connect-LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" />
+  </a>
+  <a href="mailto:ali.haggag2005@gmail.com">
+    <img src="https://img.shields.io/badge/Contact-Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
+  </a>
+  <a href="https://github.com/Ali-Haggag7">
+    <img src="https://img.shields.io/badge/Portfolio-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
+  </a>
+</div>
