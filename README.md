@@ -16,7 +16,7 @@
 
   <br />
 
-  <img src="https://placehold.co/800x400/1a1a1a/FFF?text=Gemini+Clone+Preview+(Add+Image)" alt="Project Preview" width="100%" style="border-radius: 10px;" />
+  <img src="/gemini-clone-1.jpeg" alt="Project Preview" width="100%" style="border-radius: 10px;" />
 
 </div>
 
@@ -84,9 +84,9 @@ Open http://localhost:3000 to view it in the browser.
 
 ## 📸 Interface Previews
 
-| **Chat Interface** | **Sidebar & History** |
+| **Chat Interface** | **Mobile Preview** |
 | :---: | :---: |
-| <img src="https://placehold.co/400x250/1a1a1a/FFF?text=Chat+Interface+Preview" width="100%" /> | <img src="https://placehold.co/400x250/1a1a1a/FFF?text=Sidebar+and+History+Preview" width="100%" /> |
+| <img src="/gemini-clone-2.jpeg" width="100%" /> | <img src="/gemini-clone-3.jpeg" width="100%" /> |
 
 ---
 
