@@ -4,11 +4,21 @@
   padding: 0;
   margin: 0;
   box-sizing: border-box;
-  font-family: Outfit;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Strict viewport lock to prevent height collapse */
+html,
+body {
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #ffffff;
 }
 
 #root {
-  min-height: 100vh;
+  height: 100%;
+  width: 100%;
   display: flex;
   animation: fadeIn 1.5s;
 }

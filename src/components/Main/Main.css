@@ -1,12 +1,14 @@
-/* --- Base Architecture --- */
+/* Base Architecture */
 .main {
     flex: 1;
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100%;
+    /* Forces exact height inheritance */
     display: flex;
     flex-direction: column;
     position: relative;
     background-color: #ffffff;
+    overflow: hidden;
+    /* Delegates scrolling to .view-stack */
 }
 
 .nav {
@@ -376,23 +378,83 @@
     font-weight: 400;
 }
 
-/* --- Mobile Breakpoint --- */
+/* --- Mobile Native App Experience --- */
 @media (max-width: 600px) {
-    .greet {
-        font-size: 40px;
-        margin: 32px 0;
+
+    /* Create a "pocket" for the floating menu button */
+    .nav {
+        padding: 20px 20px 20px 60px;
+        justify-content: space-between;
     }
 
+    .nav p {
+        font-size: 22px;
+    }
+
+    .nav img {
+        position: static;
+    }
+
+    .greet {
+        font-size: 42px;
+        margin: 24px 0;
+        letter-spacing: -1.5px;
+    }
+
+    /* Horizontal Scroll Snap (Carousel) */
     .cards {
-        grid-template-columns: 1fr 1fr;
-        /* 2x2 grid on mobile */
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 0;
+        margin: 0;
+    }
+
+    .cards::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Transform squares into sleek, native-feeling rows */
+    .card {
+        height: auto;
+        min-height: 72px;
+        flex-direction: row;
+        align-items: center;
+        padding: 16px 20px;
+        border-radius: 20px;
+        background-color: #f0f4f9;
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    .card p {
+        flex: 1;
+        /* Takes remaining space */
+        font-size: 15px;
+        line-height: 1.5;
+        color: #444746;
+    }
+
+    .card img {
+        position: static;
+        /* Overrides absolute positioning from desktop */
+        width: 38px;
+        height: 38px;
+        padding: 8px;
+        margin-left: 16px;
+        border-radius: 50%;
+        background-color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        align-self: center;
+    }
+
+    /* Floating Dynamic Search Bar */
+    .main-bottom {
+        padding: 0 16px 24px;
     }
 
     .search-box {
+        background-color: #f0f4f9;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         padding: 6px 12px;
-    }
-
-    .search-box .actions {
-        gap: 0px;
     }
 }
