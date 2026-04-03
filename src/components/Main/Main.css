@@ -1,11 +1,15 @@
+/* --- Base Architecture --- */
 .main {
-    position: relative;
     flex: 1;
     min-height: 100vh;
-    padding-bottom: 15vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background-color: #ffffff;
 }
 
-.main .nav {
+.nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -14,121 +18,122 @@
     color: #585858;
 }
 
-.main .nav img {
+.nav img {
     width: 40px;
+    height: 40px;
     border-radius: 50%;
+    object-fit: cover;
 }
 
 .main-container {
+    flex: 1;
     max-width: 900px;
-    margin: auto;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px;
+    position: relative;
 }
 
-.main .greet {
-    margin: 50px 0;
+/* --- View Stacking (Mount-Once Crossfading) --- */
+.view-stack {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding-bottom: 120px;
+    /* Space for fixed bottom bar */
+}
+
+.view-stack::-webkit-scrollbar {
+    display: none;
+}
+
+.stack-layer {
+    grid-area: 1 / 1;
+    /* Stacks them on top of each other */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s cubic-bezier(0.2, 0, 0, 1), transform 0.4s cubic-bezier(0.2, 0, 0, 1);
+    transform: translateY(10px);
+    will-change: opacity, transform;
+}
+
+.stack-layer[data-active="true"] {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* --- Greeting View --- */
+.greet {
+    margin: 56px 0;
     font-size: 56px;
     color: #c4c7c5;
     font-weight: 500;
-    padding: 20px;
+    line-height: 1.1;
+    letter-spacing: -1px;
 }
 
-.main .greet span {
+.greet span {
     background: -webkit-linear-gradient(16deg, #4b90ff, #ff5546);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-.main .cards {
+.cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 15px;
-    padding: 20px;
+    gap: 16px;
 }
 
-.main .card {
+/* Hardware accelerated card hover physics */
+.card {
     height: 200px;
-    padding: 15px;
+    padding: 20px;
     background-color: #f0f4f9;
-    border-radius: 10px;
+    border-radius: 16px;
+    border: none;
+    text-align: left;
     position: relative;
     cursor: pointer;
-}
-
-.main .card:hover {
-    background-color: #dfe4ea;
-}
-
-.main .card img {
-    width: 35px;
-    padding: 5px;
-    position: absolute;
-    background-color: white;
-    border-radius: 20px;
-    bottom: 10px;
-    right: 10px;
-}
-
-.main .card p {
-    color: #585858;
-    font-size: 17px;
-}
-
-.main-bottom {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    max-width: 900px;
-    padding: 0 20px;
-    margin: auto;
-}
-
-.search-box {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: space-between;
-    gap: 20px;
-    background-color: #f0f4f9;
-    padding: 10px 20px;
-    border-radius: 50px;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease, box-shadow 0.3s ease;
+    will-change: transform;
 }
 
-.search-box img {
-    width: 24px;
-    cursor: pointer;
+.card:hover {
+    background-color: #dfe4ea;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
-.search-box input {
-    flex: 1;
-    background-color: transparent;
-    border: none;
-    outline: none;
-    padding: 8px;
-    font-size: 18px;
+.card:active {
+    transform: translateY(0) scale(0.98);
 }
 
-.search-box div {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+.card p {
+    color: #585858;
+    font-size: 16px;
+    line-height: 1.4;
 }
 
-.main .bottom-info {
-    font-size: 13px;
-    margin: 15px auto;
-    text-align: center;
-    font-weight: 300;
+.card img {
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+    background-color: white;
+    border-radius: 50%;
+    align-self: flex-end;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.result {
-    padding: 0 5%;
-    max-height: 70vh;
-    overflow-y: scroll;
-}
-
-.result::-webkit-scrollbar {
-    display: none;
-}
-
+/* --- Result View --- */
 .result-title {
     margin: 40px 0;
     display: flex;
@@ -136,62 +141,217 @@
     gap: 20px;
 }
 
-.result img {
+.result-title img {
     width: 40px;
+    height: 40px;
     border-radius: 50%;
+}
+
+.result-title p {
+    font-size: 18px;
+    font-weight: 400;
+    color: #1f1f1f;
 }
 
 .result-data {
     display: flex;
-    align-items: start;
+    align-items: flex-start;
     gap: 20px;
 }
 
-.loader {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.gemini-spin {
+    width: 40px;
+    height: 40px;
+    animation: spin-pulse 4s linear infinite;
 }
 
-.loader hr {
-    border-radius: 4px;
-    border: none;
-    background-color: #f6f7f8;
-    background: linear-gradient(to right, #9ed7ff, #ffffff, #9ed7ff);
-    background-size: 800px 50px;
-    height: 20px;
-    animation: loader 3s infinite linear;
-}
-
-@keyframes loader {
+@keyframes spin-pulse {
     0% {
-        background-position: -800px 0;
+        transform: rotate(0deg) scale(1);
+    }
+
+    50% {
+        transform: rotate(180deg) scale(1.1);
     }
 
     100% {
-        background-position: 800px 0;
+        transform: rotate(360deg) scale(1);
     }
 }
 
 .result-data p {
-    font-size: 17px;
-    font-weight: 300;
-    line-height: 1.8;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: #3c4043;
+    flex: 1;
+    /* Ensures text wraps properly next to icon */
 }
 
+/* Hardware Accelerated Skeleton Screen */
+.loader {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 8px;
+}
+
+.skeleton-line {
+    height: 20px;
+    border-radius: 6px;
+    background-color: #f0f4f9;
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-line.short {
+    width: 65%;
+}
+
+/* GPU bounded animation (No repaint thrashing) */
+.skeleton-line::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.fade-in-text {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Search & Bottom Bar --- */
+.main-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0 20px;
+    background: linear-gradient(to top, #ffffff 80%, transparent);
+    /* Fades over content smoothly */
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #f0f4f9;
+    padding: 8px 16px;
+    border-radius: 32px;
+    max-width: 860px;
+    margin: 0 auto;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-box:focus-within {
+    background-color: #e6eaf1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.search-box input {
+    flex: 1;
+    min-width: 0;
+    /* Prevents input blowout on flex mobile */
+    background-color: transparent;
+    border: none;
+    outline: none;
+    padding: 12px 8px;
+    font-size: 16px;
+    color: #1f1f1f;
+}
+
+.search-box .actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.icon-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.icon-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+/* GPU Spring Send Button Logic */
+.send-btn {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.6) rotate(-20deg);
+    transition: opacity 0.2s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    will-change: transform, opacity;
+}
+
+.send-btn[data-visible="true"] {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1) rotate(0deg);
+}
+
+.bottom-info {
+    font-size: 12px;
+    color: #70757a;
+    margin: 16px auto 24px;
+    text-align: center;
+    font-weight: 400;
+}
+
+/* --- Mobile Breakpoint --- */
 @media (max-width: 600px) {
-    .main-bottom input {
-        flex: none;
-        width: 150px;
+    .greet {
+        font-size: 40px;
+        margin: 32px 0;
     }
-    .main-bottom img {
-        width: 20px;
+
+    .cards {
+        grid-template-columns: 1fr 1fr;
+        /* 2x2 grid on mobile */
     }
+
     .search-box {
-        padding: 5px 10px;
+        padding: 6px 12px;
     }
-    .search-box div {
-        gap: 5px;
+
+    .search-box .actions {
+        gap: 0px;
     }
 }

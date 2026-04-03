@@ -1,95 +1,99 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useRef, useMemo, useCallback } from "react";
 import run from "../config/gemini";
 
 export const Context = createContext();
 
 const ContextProvider = (props) => {
     const [input, setInput] = useState("");
-    // Note: Typo fixed from 'resentPrompt' to 'recentPrompt'
     const [recentPrompt, setRecentPrompt] = useState("");
     const [prevPrompts, setPrevPrompts] = useState([]);
     const [showResult, setShowResult] = useState(false);
     const [loading, setLoading] = useState(false);
     const [resultData, setResultData] = useState("");
 
-    // Function to create a typing effect by delaying text rendering
-    const delayPara = (index, nextWord) => {
-        setTimeout(function () {
-            setResultData((prev) => prev + nextWord);
-        }, 75 * index); // 75ms delay for a realistic typing speed
-    };
+    // Stable ref to track and cancel timeouts, preventing memory leaks and overlapping text
+    const typingTimeouts = useRef([]);
 
-    // Reset states for a new chat session
-    const newChat = () => {
+    // --- Helper: Clean up active typing animations ---
+    const clearTypingTimeouts = useCallback(() => {
+        typingTimeouts.current.forEach(clearTimeout);
+        typingTimeouts.current = [];
+    }, []);
+
+    // --- Helper: Reset states for a new chat ---
+    const newChat = useCallback(() => {
+        clearTypingTimeouts();
         setLoading(false);
         setShowResult(false);
-    };
+        setResultData("");
+    }, [clearTypingTimeouts]);
 
-    // Handle sending the prompt to the Gemini API
-    const onSent = async (prompt) => {
+    // --- Helper: GPU-Friendly Typing Effect ---
+    const delayPara = useCallback((index, nextWord) => {
+        const timeoutId = setTimeout(() => {
+            setResultData((prev) => prev + nextWord);
+        }, 30 * index); // Sped up to 30ms for a snappier, modern feel
+
+        typingTimeouts.current.push(timeoutId);
+    }, []);
+
+    // --- Main Action: Fetch and Stream ---
+    const onSent = useCallback(async (promptOverride) => {
+        clearTypingTimeouts();
         setResultData("");
         setLoading(true);
         setShowResult(true);
 
-        let response;
-        // Determine the final prompt: use the provided prompt or the input state
-        let finalPrompt = prompt !== undefined ? prompt : input;
+        const finalPrompt = promptOverride !== undefined ? promptOverride : input;
+
+        if (!finalPrompt.trim()) {
+            setLoading(false);
+            return;
+        }
 
         setPrevPrompts((prev) => [...prev, finalPrompt]);
         setRecentPrompt(finalPrompt);
 
         try {
-            // Fetch response from Gemini API
-            response = await run(finalPrompt);
+            const response = await run(finalPrompt);
 
-            // --- 1. Format Bold Text (**) ---
-            let responseArray = response.split("**");
-            let formattedResponse = "";
-            for (let i = 0; i < responseArray.length; i++) {
-                if (i % 2 === 1) {
-                    formattedResponse += "<b>" + responseArray[i] + "</b>"; // Bold text
-                } else {
-                    formattedResponse += responseArray[i]; // Normal text
-                }
-            }
+            // 1. Hyper-optimized Regex parsing (Faster & cleaner than split/loops)
+            let formattedResponse = response
+                .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") // Bold text
+                .replace(/\*/g, "• ")                   // Bullet points
+                .replace(/\n/g, "<br/>");               // Line breaks (No spaces to prevent token tearing)
 
-            // --- 2. Format Line Breaks (\n) and Bullet Points (*) ---
-            // Replace single asterisks with a bullet point symbol
-            let formattedWithBullets = formattedResponse.split("*").join("• ");
-            // Replace newline characters with HTML break tags to prevent clustered text
-            let finalFormattedResponse = formattedWithBullets.split("\n").join("<br />");
+            // 2. Apply Typing Effect safely
+            const responseWords = formattedResponse.split(" ");
 
-            // --- 3. Apply Typing Effect ---
-            let newResponseArray = finalFormattedResponse.split(" ");
-            for (let i = 0; i < newResponseArray.length; i++) {
-                const nextWord = newResponseArray[i];
+            for (let i = 0; i < responseWords.length; i++) {
+                const nextWord = responseWords[i];
                 delayPara(i, nextWord + " ");
             }
 
         } catch (error) {
-            console.error("Error while fetching from Gemini API:", error);
-            // Display a user-friendly error message in red
-            setResultData("<span style='color:red;'>Error: Something went wrong. Check your connection or API Key.</span>");
+            console.error("Gemini API Error:", error);
+            setResultData("<span style='color:#ff5546; font-weight:500;'>Error: Failed to connect to Gemini. Check your API Key or Network.</span>");
         } finally {
-            // Stop loading and clear input regardless of success or failure
             setLoading(false);
             setInput("");
         }
-    };
+    }, [input, clearTypingTimeouts, delayPara]);
 
-    const contextValue = {
+    // --- Memoize Context Value to prevent cascading re-renders across the app ---
+    const contextValue = useMemo(() => ({
         prevPrompts,
         setPrevPrompts,
         onSent,
-        setRecentPrompt, // Updated name
-        recentPrompt,    // Updated name
+        setRecentPrompt,
+        recentPrompt,
         showResult,
         loading,
         resultData,
         input,
         setInput,
         newChat
-    };
+    }), [prevPrompts, onSent, recentPrompt, showResult, loading, resultData, input, newChat]);
 
     return (
         <Context.Provider value={contextValue}>

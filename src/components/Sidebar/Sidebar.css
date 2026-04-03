@@ -1,73 +1,182 @@
+/* Sidebar Shell - Hardware Accelerated */
 .sidebar {
     height: 100vh;
+    height: 100dvh;
+    /* Mobile viewport fix */
     background-color: #F0F4F9;
-    padding: 25px 15px;
-    display: inline-flex;
+    padding: 24px 16px;
+    display: flex;
     flex-direction: column;
     justify-content: space-between;
+
+    /* The Magic: Smooth Width Transition */
+    width: 72px;
+    /* Collapsed Width */
+    transition: width 0.3s cubic-bezier(0.2, 0, 0, 1);
+    overflow-x: hidden;
+    /* Prevents text overflow during animation */
+    will-change: width;
+    flex-shrink: 0;
 }
 
-.sidebar img {
-    width: 20px;
+.sidebar.extended {
+    width: 280px;
+    /* Extended Width */
 }
 
-.sidebar .menu {
-    display: block;
-    margin-left: 10px;
+/* Reset buttons */
+.sidebar button {
+    background: transparent;
+    border: none;
+    outline: none;
     cursor: pointer;
+    font-family: inherit;
+    text-align: left;
 }
 
-.sidebar .new-chat {
-    margin-top: 50px;
-    gap: 10px;
-    padding: 10px 15px;
-    background-color: #e6eaf1;
-    border-radius: 50px;
-    font-size: 14px;
-    color: gray;
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-}
-
-.sidebar .resent {
-    display: flex;
-    flex-direction: column;
-    animation: fadeIn 1.5s;
-}
-
-.sidebar .resent-title {
-    margin-top: 30px;
-    margin-bottom: 20px;
-}
-
-.sidebar .resent-entry {
+/* Menu Toggle */
+.menu-btn {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px;
-    padding-right: 40px;
-    border-radius: 50px;
-    color: #282828;
-    cursor: pointer;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-bottom: 48px;
+    transition: background-color 0.2s ease;
 }
 
-.sidebar .resent-entry:hover {
+.menu-btn:hover {
     background-color: #e2e6eb;
 }
 
-.sidebar .bottom {
+.menu-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* New Chat Button */
+.new-chat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 12px;
+    background-color: #e6eaf1;
+    border-radius: 24px;
+    /* Pill shape */
+    color: #444746;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    width: max-content;
+    /* Prevents squishing when closed */
+}
+
+.new-chat:hover {
+    background-color: #d3d8df;
+}
+
+.new-chat:active {
+    transform: scale(0.96);
+}
+
+.new-chat img {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* Recent Prompts Section */
+.recent-container {
+    margin-top: 32px;
     display: flex;
     flex-direction: column;
 }
 
-.sidebar .bottom-item {
-    padding-right: 10px;
-    cursor: pointer;
+.recent-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #444746;
+    margin-bottom: 16px;
+    padding-left: 12px;
 }
 
+.recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Shared Entry Styles (Recent & Bottom items) */
+.recent-entry {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 20px;
+    color: #202124;
+    transition: background-color 0.2s ease;
+    width: 100%;
+}
+
+.recent-entry:hover {
+    background-color: #e2e6eb;
+}
+
+.recent-entry img {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* Elegant Text Truncation */
+.prompt-text {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Replaces JS slicing */
+}
+
+/* Bottom Actions */
+.bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bottom-item {
+    font-size: 14px;
+    font-weight: 500;
+    color: #444746;
+}
+
+/* * ----------------------------------------
+ * Mount-Once Visibility Logic 
+ * ----------------------------------------
+ * We keep text in the DOM and animate opacity 
+ * so the browser doesn't thrash layouts.
+ */
+.text-content {
+    opacity: 0;
+    white-space: nowrap;
+    transition: opacity 0.1s ease;
+    pointer-events: none;
+    /* Prevents invisible text from being clicked */
+}
+
+.sidebar.extended .text-content {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.3s ease 0.15s;
+    /* Delays fade-in until width expands */
+}
+
+/* Responsive */
 @media (max-width: 600px) {
-    .sidebar{
+    .sidebar {
         display: none;
     }
 }
