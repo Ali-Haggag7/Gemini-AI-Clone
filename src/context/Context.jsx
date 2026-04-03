@@ -10,79 +10,73 @@ const ContextProvider = (props) => {
     const [showResult, setShowResult] = useState(false);
     const [loading, setLoading] = useState(false);
     const [resultData, setResultData] = useState("");
+    const [chatHistory, setChatHistory] = useState([]);
 
-    // Stable ref to track and cancel timeouts, preventing memory leaks and overlapping text
     const typingTimeouts = useRef([]);
 
-    // --- Helper: Clean up active typing animations ---
     const clearTypingTimeouts = useCallback(() => {
         typingTimeouts.current.forEach(clearTimeout);
         typingTimeouts.current = [];
     }, []);
 
-    // --- Helper: Reset states for a new chat ---
     const newChat = useCallback(() => {
         clearTypingTimeouts();
         setLoading(false);
         setShowResult(false);
         setResultData("");
+        setChatHistory([]);
     }, [clearTypingTimeouts]);
 
-    // --- Helper: GPU-Friendly Typing Effect ---
     const delayPara = useCallback((index, nextWord) => {
-        const timeoutId = setTimeout(() => {
+        const id = setTimeout(() => {
             setResultData((prev) => prev + nextWord);
-        }, 30 * index); // Sped up to 30ms for a snappier, modern feel
-
-        typingTimeouts.current.push(timeoutId);
+        }, 30 * index);
+        typingTimeouts.current.push(id);
     }, []);
 
-    // --- Main Action: Fetch and Stream ---
     const onSent = useCallback(async (promptOverride) => {
         clearTypingTimeouts();
-        setResultData("");
-        setLoading(true);
-        setShowResult(true);
 
         const finalPrompt = promptOverride !== undefined ? promptOverride : input;
+        if (!finalPrompt.trim()) return;
 
-        if (!finalPrompt.trim()) {
-            setLoading(false);
-            return;
-        }
-
+        // Don't wipe resultData here — let the loading state handle the UI.
+        // Wiping it immediately caused the previous response to flash away.
+        setLoading(true);
+        setShowResult(true);
+        setResultData("");
         setPrevPrompts((prev) => [...prev, finalPrompt]);
         setRecentPrompt(finalPrompt);
 
         try {
-            // We map prevPrompts to the format Gemini expects: { role: "user" | "model", parts: [{ text: "" }] }
-            // For now, to keep it simple, we'll send the prompt and the history logic
-            const response = await run(finalPrompt);
+            const response = await run(finalPrompt, chatHistory);
+            const safeResponse = typeof response === "string" && response ? response : null;
 
-            // 1. Hyper-optimized Regex parsing (Faster & cleaner than split/loops)
-            let formattedResponse = response
-                .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") // Bold text
-                .replace(/\*/g, "• ")                   // Bullet points
-                .replace(/\n/g, "<br/>");               // Line breaks (No spaces to prevent token tearing)
+            if (!safeResponse) throw new Error("Empty response from Gemini");
 
-            // 2. Apply Typing Effect safely
-            const responseWords = formattedResponse.split(" ");
+            // Append this turn to history so the next call has full context
+            setChatHistory(prev => [
+                ...prev,
+                { role: "user", parts: [{ text: finalPrompt }] },
+                { role: "model", parts: [{ text: safeResponse }] },
+            ]);
 
-            for (let i = 0; i < responseWords.length; i++) {
-                const nextWord = responseWords[i];
-                delayPara(i, nextWord + " ");
-            }
+            const formatted = safeResponse
+                .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+                .replace(/\*/g, "• ")
+                .replace(/\n/g, "<br/>");
 
-        } catch (error) {
-            console.error("Gemini API Error:", error);
-            setResultData("<span style='color:#ff5546; font-weight:500;'>Error: Failed to connect to Gemini. Check your API Key or Network.</span>");
+            formatted.split(" ").forEach((word, i) => delayPara(i, word + " "));
+
+        } catch (err) {
+            console.error("Gemini API Error:", err);
+            setResultData("<span style='color:#ff5546;font-weight:500;'>Error: " + err.message + "</span>");
         } finally {
             setLoading(false);
             setInput("");
         }
-    }, [input, clearTypingTimeouts, delayPara]);
+    }, [input, chatHistory, clearTypingTimeouts, delayPara]);
 
-    // --- Memoize Context Value to prevent cascading re-renders across the app ---
     const contextValue = useMemo(() => ({
         prevPrompts,
         setPrevPrompts,
@@ -94,8 +88,9 @@ const ContextProvider = (props) => {
         resultData,
         input,
         setInput,
-        newChat
-    }), [prevPrompts, onSent, recentPrompt, showResult, loading, resultData, input, newChat]);
+        newChat,
+        chatHistory,      // ← this was the missing piece
+    }), [prevPrompts, onSent, recentPrompt, showResult, loading, resultData, input, newChat, chatHistory]);
 
     return (
         <Context.Provider value={contextValue}>

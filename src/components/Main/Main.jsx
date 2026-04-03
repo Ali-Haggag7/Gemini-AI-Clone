@@ -1,18 +1,14 @@
-import React, { useContext, useCallback, memo } from 'react';
+import React, { useContext, useCallback, memo, useEffect, useRef } from 'react';
 import './Main.css';
 import { assets } from '../../assets/assets';
 import { Context } from '../../context/Context';
 
-// --- Static Data Outside Component (Prevents Re-allocation) ---
 const SUGGESTION_CARDS = [
     { text: "Suggest beautiful places to see on an upcoming road trip", icon: assets.compass_icon },
     { text: "Briefly summarize this concept: urban planning", icon: assets.bulb_icon },
     { text: "Brainstorm team bonding activities for our work retreat", icon: assets.message_icon },
     { text: "Improve the readability of the following code", icon: assets.code_icon }
 ];
-
-// --- Memoized Child Components ---
-// These prevent the heavy UI from re-rendering when the user is just typing in the input box.
 
 const GreetingView = memo(({ onLoadPrompt }) => (
     <div className="greet-view">
@@ -37,53 +33,84 @@ const GreetingView = memo(({ onLoadPrompt }) => (
 ));
 GreetingView.displayName = "GreetingView";
 
-const ResultView = memo(({ recentPrompt, loading, resultData }) => (
-    <div className='result-view'>
-        <div className="result-title">
-            <img src={assets.user_icon} alt="User" />
-            <p dir="auto">{recentPrompt}</p>
-        </div>
-        <div className="result-data">
-            {/* * Mount-Once & Dynamic Class: 
-              * Applies the 'thinking' animation only when fetching data.
-              * Reverts to stable state instantly when loading finishes.
-              */}
-            <img
-                src={assets.gemini_icon}
-                alt="Gemini"
-                className={`gemini-icon ${loading ? 'thinking' : ''}`}
-            />
+const ResultView = memo(({ recentPrompt, loading, resultData, chatHistory = [] }) => (
+    <div className='result'>
+        {chatHistory.map((chat, index) => (
+            <div key={index} className={chat.role === "user" ? "result-title" : "result-data"}>
+                <img src={chat.role === "user" ? assets.user_icon : assets.gemini_icon} alt="" />
+                <p
+                    dir="auto"
+                    dangerouslySetInnerHTML={{
+                        __html: chat.parts[0].text
+                            .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+                            .replace(/\*/g, "• ")
+                            .replace(/\n/g, "<br/>")
+                    }}
+                />
+            </div>
+        ))}
 
-            {loading ? (
-                <div className='loader'>
-                    {/* GPU-Accelerated Skeletons */}
-                    <div className="skeleton-line" />
-                    <div className="skeleton-line" />
-                    <div className="skeleton-line short" />
+        {loading || resultData ? (
+            <>
+                <div className="result-title">
+                    <img src={assets.user_icon} alt="User" />
+                    <p dir="auto">{recentPrompt}</p>
                 </div>
-            ) : (
-                <p dir="auto" className="fade-in-text" dangerouslySetInnerHTML={{ __html: resultData }}></p>
-            )}
-        </div>
+                <div className="result-data">
+                    <img
+                        src={assets.gemini_icon}
+                        alt="Gemini"
+                        className={`gemini-icon ${loading ? 'thinking' : ''}`}
+                    />
+                    {loading && !resultData ? (
+                        <div className='loader'>
+                            <div className="skeleton-line" />
+                            <div className="skeleton-line" />
+                            <div className="skeleton-line short" />
+                        </div>
+                    ) : (
+                        <p
+                            dir="auto"
+                            className="fade-in-text"
+                            dangerouslySetInnerHTML={{ __html: resultData }}
+                        />
+                    )}
+                </div>
+            </>
+        ) : null}
+
+        {/*
+         * Sentinel element — scrolled into view whenever history or resultData
+         * changes. Lives inside ResultView so it's always at the bottom of content.
+         */}
+        <div className="scroll-anchor" />
     </div>
 ));
 ResultView.displayName = "ResultView";
 
-
-// --- Main Component ---
 const Main = () => {
-    const { onSent, recentPrompt, showResult, loading, resultData, setInput, input } = useContext(Context);
+    const { onSent, recentPrompt, showResult, loading, resultData, setInput, input, chatHistory } = useContext(Context);
 
-    // Stable referential identity for the click handler
+    // Ref points to the scroll container (view-stack), not the content
+    const scrollContainerRef = useRef(null);
+    const anchorRef = useRef(null);
+
+    // Scroll to bottom whenever content grows
+    useEffect(() => {
+        if (!scrollContainerRef.current) return;
+        scrollContainerRef.current.scrollTo({
+            top: scrollContainerRef.current.scrollHeight,
+            behavior: 'smooth'
+        });
+    }, [resultData, loading, chatHistory]);
+
     const handleLoadPrompt = useCallback(async (promptText) => {
         setInput(promptText);
         await onSent(promptText);
     }, [setInput, onSent]);
 
     const handleKeyDown = useCallback((e) => {
-        if (e.key === "Enter" && input.trim()) {
-            onSent();
-        }
+        if (e.key === "Enter" && input.trim()) onSent();
     }, [input, onSent]);
 
     return (
@@ -94,12 +121,13 @@ const Main = () => {
             </nav>
 
             <div className="main-container">
-
-                {/* * Mount-Once Stacking Context:
-                  * Both views remain in the DOM structure (via CSS Grid stacking).
-                  * This prevents layout thrashing and allows seamless GPU cross-fading.
-                  */}
-                <div className="view-stack">
+                {/*
+                 * Single scroll owner. The greeting and result layers are stacked
+                 * via CSS grid inside here — only this element scrolls.
+                 * Giving scroll ownership to both view-stack AND .result caused
+                 * two competing scroll containers, making history unreachable.
+                 */}
+                <div className="view-stack" ref={scrollContainerRef}>
                     <div className="stack-layer" data-active={!showResult}>
                         <GreetingView onLoadPrompt={handleLoadPrompt} />
                     </div>
@@ -109,6 +137,7 @@ const Main = () => {
                             recentPrompt={recentPrompt}
                             loading={loading}
                             resultData={resultData}
+                            chatHistory={chatHistory ?? []}
                         />
                     </div>
                 </div>
@@ -128,10 +157,6 @@ const Main = () => {
                                 <img src={assets.gallery_icon} alt="" />
                             </button>
 
-                            {/* * Mount-Once Stacking for Input Actions:
-                              * Wraps Mic and Send in a 1x1 CSS grid so they overlap perfectly.
-                              * Prevents layout shifts and empty spaces on the right.
-                              */}
                             <div className="mic-send-wrapper">
                                 <button
                                     className="icon-btn mic-btn"

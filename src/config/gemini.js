@@ -1,36 +1,57 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(apiKey);
-
 /**
- * Executes a chat-based multi-turn conversation with the Gemini API.
- * This implementation persists the context of the conversation.
- * * @param {string} prompt - The current user message.
- * @param {Array} history - The previous messages in the conversation.
- * @returns {string} - The AI's response text.
+ * Advanced Fetch for Gemini 2.5
+ * Supports Multi-turn conversations by passing chat history.
  */
-async function run(prompt, history = []) {
-  try {
-    // Note: Using 'gemini-1.5-flash' as it's the stable production standard for speed/context.
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+async function run(prompt, chatHistory = []) {
+  const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
-    // Start a chat session with the provided history array
-    const chat = model.startChat({
-      history: history,
-      generationConfig: {
-        maxOutputTokens: 2000,
-      },
+  /* Constructing the contents array:
+     1. Spread the existing chatHistory (previous User/Model turns).
+     2. Append the current user prompt as the final entry.
+  */
+  const contents = [
+    ...chatHistory,
+    {
+      role: "user",
+      parts: [{ text: prompt }]
+    }
+  ];
+
+  try {
+    console.log("--- SYSTEM: SENDING DATA TO GEMINI 2.5 (WITH CONTEXT) ---");
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: contents })
     });
 
-    const result = await chat.sendMessage(prompt);
-    const response = await result.response;
+    const data = await response.json();
 
-    return response.text();
+    if (!response.ok) {
+      console.error("API Error Response:", data);
+      throw new Error(data.error?.message || "Generation Failed");
+    }
+
+    /* Robust parsing to extract text from Gemini's nested JSON structure */
+    const textResult =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      data?.candidates?.[0]?.text ||
+      data?.text ||
+      null;
+
+    if (textResult) {
+      console.log("--- SYSTEM: PARSING SUCCESSFUL ---");
+      return textResult;
+    } else {
+      console.warn("--- SYSTEM: UNEXPECTED JSON STRUCTURE ---", data);
+      return "Error: Response format not recognized. Check console for details.";
+    }
 
   } catch (error) {
-    console.error("Gemini SDK Error:", error);
-    return "Error: Unable to fetch response. Please check your API key or connection.";
+    console.error("--- FETCH ERROR ---", error);
+    return `Critical Error: ${error.message}`;
   }
 }
 

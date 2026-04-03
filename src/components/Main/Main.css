@@ -1,14 +1,11 @@
-/* Base Architecture */
 .main {
     flex: 1;
     height: 100%;
-    /* Forces exact height inheritance */
     display: flex;
     flex-direction: column;
     position: relative;
     background-color: #ffffff;
     overflow: hidden;
-    /* Delegates scrolling to .view-stack */
 }
 
 .nav {
@@ -18,6 +15,7 @@
     font-size: 22px;
     padding: 20px;
     color: #585858;
+    flex-shrink: 0;
 }
 
 .nav img {
@@ -36,30 +34,50 @@
     flex-direction: column;
     padding: 0 20px;
     position: relative;
+    min-height: 0;
 }
 
-/* --- View Stacking (Mount-Once Crossfading) --- */
+/*
+ * Single scroll owner for the entire content area.
+ * Previously, both .view-stack and .result had overflow-y: auto, creating
+ * two nested scroll containers. The inner one (.result) got a fixed
+ * calc() height that never matched reality, so history scrolled into a
+ * dead zone the user couldn't reach. Now only .view-stack scrolls.
+ */
 .view-stack {
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #dfe1e5 transparent;
+    /* Extra bottom padding so content clears the fixed bottom bar */
+    padding-bottom: 140px;
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
-    overflow-y: auto;
-    scrollbar-width: none;
-    padding-bottom: 120px;
-    /* Space for fixed bottom bar */
 }
 
 .view-stack::-webkit-scrollbar {
-    display: none;
+    width: 6px;
+}
+
+.view-stack::-webkit-scrollbar-thumb {
+    background: #ececf1;
+    border-radius: 10px;
+}
+
+.view-stack::-webkit-scrollbar-thumb:hover {
+    background: #dfe1e5;
 }
 
 .stack-layer {
     grid-area: 1 / 1;
-    /* Stacks them on top of each other */
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.4s cubic-bezier(0.2, 0, 0, 1), transform 0.4s cubic-bezier(0.2, 0, 0, 1);
+    transition: opacity 0.4s cubic-bezier(0.2, 0, 0, 1),
+        transform 0.4s cubic-bezier(0.2, 0, 0, 1);
     transform: translateY(10px);
     will-change: opacity, transform;
 }
@@ -70,7 +88,11 @@
     transform: translateY(0);
 }
 
-/* --- Greeting View --- */
+/* --- Greeting --- */
+.greet-view {
+    padding-top: 20px;
+}
+
 .greet {
     margin: 56px 0;
     font-size: 56px;
@@ -92,7 +114,6 @@
     gap: 16px;
 }
 
-/* Hardware accelerated card hover physics */
 .card {
     height: 200px;
     padding: 20px;
@@ -105,7 +126,9 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        background-color 0.2s ease,
+        box-shadow 0.3s ease;
     will-change: transform;
 }
 
@@ -135,73 +158,95 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* --- Result View --- */
-.result-title {
-    margin: 40px 0;
+/* --- Result / Chat History --- */
+/*
+ * .result is NO longer a scroll container. It's just a flex column
+ * that sizes to its content. The parent .view-stack owns the scroll.
+ * Removing the fixed height and overflow here was the core fix.
+ */
+.result {
+    padding: 20px 5% 0;
     display: flex;
-    align-items: center;
-    gap: 20px;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.scroll-anchor {
+    height: 1px;
+    flex-shrink: 0;
+}
+
+.result-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    animation: fadeSlideIn 0.4s ease-out both;
 }
 
 .result-title img {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
 .result-title p {
-    font-size: 18px;
+    font-size: 16px;
+    line-height: 1.6;
     font-weight: 400;
     color: #1f1f1f;
+    margin-top: 5px;
 }
 
 .result-data {
     display: flex;
     align-items: flex-start;
-    gap: 20px;
+    gap: 15px;
+    animation: fadeSlideIn 0.5s ease-out both;
 }
 
-/* --- AI Thinking Animation --- */
-.gemini-icon {
-    width: 40px;
-    height: 40px;
-    /* Smooth transition back to 0 degrees when the animation class is removed */
-    transition: transform 0.4s ease-out, filter 0.4s ease-out;
+.result-data img {
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0;
 }
 
-/* Applied dynamically via React when loading === true */
 .gemini-icon.thinking {
-    animation: gemini-think 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    animation: spin 2s linear infinite;
 }
 
-/* High-end pulse, glow, and spin physics mimicking the native engine */
-@keyframes gemini-think {
-    0% {
-        transform: scale(0.9) rotate(0deg);
-        filter: drop-shadow(0 0 0 transparent);
-    }
-
-    50% {
-        transform: scale(1.1) rotate(180deg);
-        filter: drop-shadow(0 0 12px rgba(81, 131, 254, 0.6));
-    }
-
+@keyframes spin {
     100% {
-        transform: scale(0.9) rotate(360deg);
-        filter: drop-shadow(0 0 0 transparent);
+        transform: rotate(360deg);
     }
 }
 
 .result-data p {
     font-size: 16px;
+    line-height: 1.8;
     font-weight: 400;
-    line-height: 1.7;
-    color: #3c4043;
-    flex: 1;
-    /* Ensures text wraps properly next to icon */
+    color: #374151;
+    margin-top: 2px;
 }
 
-/* Hardware Accelerated Skeleton Screen */
+.fade-in-text {
+    animation: fadeSlideIn 0.3s ease-out both;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Skeleton --- */
 .loader {
     flex: 1;
     display: flex;
@@ -222,14 +267,10 @@
     width: 65%;
 }
 
-/* GPU bounded animation (No repaint thrashing) */
 .skeleton-line::after {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
     transform: translateX(-100%);
     animation: shimmer 1.5s infinite;
@@ -241,23 +282,7 @@
     }
 }
 
-.fade-in-text {
-    animation: fadeIn 0.5s ease forwards;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(5px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* --- Search & Bottom Bar --- */
+/* --- Bottom Bar --- */
 .main-bottom {
     position: absolute;
     bottom: 0;
@@ -265,7 +290,6 @@
     width: 100%;
     padding: 0 20px;
     background: linear-gradient(to top, #ffffff 80%, transparent);
-    /* Fades over content smoothly */
 }
 
 .search-box {
@@ -288,7 +312,6 @@
 .search-box input {
     flex: 1;
     min-width: 0;
-    /* Prevents input blowout on flex mobile */
     background-color: transparent;
     border: none;
     outline: none;
@@ -325,26 +348,22 @@
     height: 20px;
 }
 
-/* --- GPU-Accelerated Icon Swap (Mic vs Send) --- */
 .mic-send-wrapper {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
     width: 40px;
-    /* Locks the exact width so the container never shifts */
     height: 40px;
 }
 
-/* Base styles for both swapping icons */
 .mic-btn,
 .send-btn {
     grid-area: 1 / 1;
-    /* Forces both buttons to stack on top of each other perfectly */
-    transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: opacity 0.2s ease,
+        transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     will-change: transform, opacity;
 }
 
-/* Mic Button Physics */
 .mic-btn {
     opacity: 0;
     pointer-events: none;
@@ -357,7 +376,6 @@
     transform: scale(1) rotate(0deg);
 }
 
-/* Send Button Physics */
 .send-btn {
     opacity: 0;
     pointer-events: none;
@@ -378,21 +396,14 @@
     font-weight: 400;
 }
 
-/* --- Mobile Native App Experience --- */
+/* --- Mobile --- */
 @media (max-width: 600px) {
-
-    /* Create a "pocket" for the floating menu button */
     .nav {
         padding: 20px 20px 20px 60px;
-        justify-content: space-between;
     }
 
     .nav p {
         font-size: 22px;
-    }
-
-    .nav img {
-        position: static;
     }
 
     .greet {
@@ -401,20 +412,12 @@
         letter-spacing: -1.5px;
     }
 
-    /* Horizontal Scroll Snap (Carousel) */
     .cards {
         display: flex;
         flex-direction: column;
         gap: 12px;
-        padding: 0;
-        margin: 0;
     }
 
-    .cards::-webkit-scrollbar {
-        display: none;
-    }
-
-    /* Transform squares into sleek, native-feeling rows */
     .card {
         height: auto;
         min-height: 72px;
@@ -422,21 +425,17 @@
         align-items: center;
         padding: 16px 20px;
         border-radius: 20px;
-        background-color: #f0f4f9;
         border: 1px solid rgba(0, 0, 0, 0.03);
     }
 
     .card p {
         flex: 1;
-        /* Takes remaining space */
         font-size: 15px;
         line-height: 1.5;
         color: #444746;
     }
 
     .card img {
-        position: static;
-        /* Overrides absolute positioning from desktop */
         width: 38px;
         height: 38px;
         padding: 8px;
@@ -447,13 +446,11 @@
         align-self: center;
     }
 
-    /* Floating Dynamic Search Bar */
     .main-bottom {
         padding: 0 16px 24px;
     }
 
     .search-box {
-        background-color: #f0f4f9;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         padding: 6px 12px;
     }
