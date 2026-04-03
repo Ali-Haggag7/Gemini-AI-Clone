@@ -55,6 +55,8 @@ const ContextProvider = (props) => {
         setRecentPrompt(finalPrompt);
 
         try {
+            // We map prevPrompts to the format Gemini expects: { role: "user" | "model", parts: [{ text: "" }] }
+            // For now, to keep it simple, we'll send the prompt and the history logic
             const response = await run(finalPrompt);
 
             // 1. Hyper-optimized Regex parsing (Faster & cleaner than split/loops)
