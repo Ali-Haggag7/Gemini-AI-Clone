@@ -174,10 +174,33 @@
     /* Delays fade-in until width expands */
 }
 
+/* --- Desktop overrides (Hides mobile backdrop on large screens) --- */
+.mobile-backdrop {
+    display: none;
+}
+
 /* --- Mobile "Out of the Box" Sidebar Drawer --- */
 @media (max-width: 600px) {
 
-    /* 1. Seamless Menu Button */
+    /* 1. Dedicated Hardware-Accelerated Backdrop */
+    .mobile-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 999;
+        /* Immediately below the sidebar */
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .mobile-backdrop.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* 2. Seamless Menu Button */
     .menu-btn {
         position: fixed;
         top: 20px;
@@ -191,12 +214,13 @@
         height: 40px;
     }
 
-    /* 2. Hidden Off-Canvas Drawer (FIXED HEIGHT ISSUE) */
+    /* 3. Hidden Off-Canvas Drawer (Zero-Jank Sliding) */
     .sidebar {
         position: fixed;
         top: 0;
         bottom: 0;
-        left: -100%;
+        left: -280px;
+        /* Locked exact pixel width to prevent jumpy math */
         width: 280px !important;
         height: auto !important;
         z-index: 1000;
@@ -204,13 +228,15 @@
         padding-bottom: 24px;
         background-color: #F0F4F9;
         transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-        box-shadow: 0 0 0 100vw rgba(0, 0, 0, 0);
+        box-shadow: none;
+        /* Removed the heavy screen-sized shadow */
     }
 
-    /* 3. When Open: Slide in and darken background */
+    /* 4. When Open: Slide in cleanly */
     .sidebar.extended {
         left: 0;
-        box-shadow: 0 0 0 100vw rgba(0, 0, 0, 0.5);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+        /* Elegant, GPU-friendly shadow just for the edge */
     }
 
     .sidebar.extended .text-content {
