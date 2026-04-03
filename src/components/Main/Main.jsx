@@ -44,7 +44,16 @@ const ResultView = memo(({ recentPrompt, loading, resultData }) => (
             <p dir="auto">{recentPrompt}</p>
         </div>
         <div className="result-data">
-            <img src={assets.gemini_icon} alt="Gemini" className="gemini-spin" />
+            {/* * Mount-Once & Dynamic Class: 
+              * Applies the 'thinking' animation only when fetching data.
+              * Reverts to stable state instantly when loading finishes.
+              */}
+            <img
+                src={assets.gemini_icon}
+                alt="Gemini"
+                className={`gemini-icon ${loading ? 'thinking' : ''}`}
+            />
+
             {loading ? (
                 <div className='loader'>
                     {/* GPU-Accelerated Skeletons */}
@@ -118,18 +127,29 @@ const Main = () => {
                             <button className="icon-btn" aria-label="Upload Image">
                                 <img src={assets.gallery_icon} alt="" />
                             </button>
-                            <button className="icon-btn" aria-label="Voice Input">
-                                <img src={assets.mic_icon} alt="" />
-                            </button>
-                            {/* Mount-Once: Button stays in DOM to prevent layout shift */}
-                            <button
-                                className="icon-btn send-btn"
-                                data-visible={!!input.trim()}
-                                onClick={() => onSent()}
-                                aria-label="Send Prompt"
-                            >
-                                <img src={assets.send_icon} alt="" />
-                            </button>
+
+                            {/* * Mount-Once Stacking for Input Actions:
+                              * Wraps Mic and Send in a 1x1 CSS grid so they overlap perfectly.
+                              * Prevents layout shifts and empty spaces on the right.
+                              */}
+                            <div className="mic-send-wrapper">
+                                <button
+                                    className="icon-btn mic-btn"
+                                    data-visible={!input.trim()}
+                                    aria-label="Voice Input"
+                                >
+                                    <img src={assets.mic_icon} alt="" />
+                                </button>
+
+                                <button
+                                    className="icon-btn send-btn"
+                                    data-visible={!!input.trim()}
+                                    onClick={() => onSent()}
+                                    aria-label="Send Prompt"
+                                >
+                                    <img src={assets.send_icon} alt="" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <p className='bottom-info'>

@@ -159,23 +159,34 @@
     gap: 20px;
 }
 
-.gemini-spin {
+/* --- AI Thinking Animation --- */
+.gemini-icon {
     width: 40px;
     height: 40px;
-    animation: spin-pulse 4s linear infinite;
+    /* Smooth transition back to 0 degrees when the animation class is removed */
+    transition: transform 0.4s ease-out, filter 0.4s ease-out;
 }
 
-@keyframes spin-pulse {
+/* Applied dynamically via React when loading === true */
+.gemini-icon.thinking {
+    animation: gemini-think 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* High-end pulse, glow, and spin physics mimicking the native engine */
+@keyframes gemini-think {
     0% {
-        transform: rotate(0deg) scale(1);
+        transform: scale(0.9) rotate(0deg);
+        filter: drop-shadow(0 0 0 transparent);
     }
 
     50% {
-        transform: rotate(180deg) scale(1.1);
+        transform: scale(1.1) rotate(180deg);
+        filter: drop-shadow(0 0 12px rgba(81, 131, 254, 0.6));
     }
 
     100% {
-        transform: rotate(360deg) scale(1);
+        transform: scale(0.9) rotate(360deg);
+        filter: drop-shadow(0 0 0 transparent);
     }
 }
 
@@ -312,13 +323,43 @@
     height: 20px;
 }
 
-/* GPU Spring Send Button Logic */
+/* --- GPU-Accelerated Icon Swap (Mic vs Send) --- */
+.mic-send-wrapper {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    width: 40px;
+    /* Locks the exact width so the container never shifts */
+    height: 40px;
+}
+
+/* Base styles for both swapping icons */
+.mic-btn,
+.send-btn {
+    grid-area: 1 / 1;
+    /* Forces both buttons to stack on top of each other perfectly */
+    transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    will-change: transform, opacity;
+}
+
+/* Mic Button Physics */
+.mic-btn {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.6) rotate(20deg);
+}
+
+.mic-btn[data-visible="true"] {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1) rotate(0deg);
+}
+
+/* Send Button Physics */
 .send-btn {
     opacity: 0;
     pointer-events: none;
     transform: scale(0.6) rotate(-20deg);
-    transition: opacity 0.2s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    will-change: transform, opacity;
 }
 
 .send-btn[data-visible="true"] {
